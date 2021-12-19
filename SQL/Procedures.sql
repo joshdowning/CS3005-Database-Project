@@ -1,7 +1,8 @@
+--remove books from cart where quantity is 0
 create or replace function remove_book() returns trigger language plpgsql as
 $$ begin delete from bookstore.book_cart where cartquantity=0; return null; end; $$;
 
-
+--put the email and isbn into the list that needs to be ordered
 create or replace function order_books() 
         			returns trigger language plpgsql 
         			as $$ begin "
