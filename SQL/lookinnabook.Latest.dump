@@ -1,0 +1,1099 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 13.4
+-- Dumped by pg_dump version 13.4
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: bookstore; Type: SCHEMA; Schema: -; Owner: postgres
+--
+
+CREATE SCHEMA bookstore;
+
+
+ALTER SCHEMA bookstore OWNER TO postgres;
+
+--
+-- Name: order_books(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.order_books() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$ begin insert into bookstore.book_publisher_backorder values(new.isbn, (select bookstore.publisher.email from bookstore.publisher join bookstore.book on bookstore.publisher.name = bookstore.book.publisher_name where isbn = new.isbn)); return null; end; $$;
+
+
+ALTER FUNCTION public.order_books() OWNER TO postgres;
+
+--
+-- Name: remove_book(); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.remove_book() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$ begin delete from bookstore.book_cart where cartquantity=0; return null; end; $$;
+
+
+ALTER FUNCTION public.remove_book() OWNER TO postgres;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: author; Type: TABLE; Schema: bookstore; Owner: postgres
+--
+
+CREATE TABLE bookstore.author (
+    author_id integer NOT NULL,
+    first_name character varying(20),
+    last_name character varying(20)
+);
+
+
+ALTER TABLE bookstore.author OWNER TO postgres;
+
+--
+-- Name: author_author_id_seq; Type: SEQUENCE; Schema: bookstore; Owner: postgres
+--
+
+CREATE SEQUENCE bookstore.author_author_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE bookstore.author_author_id_seq OWNER TO postgres;
+
+--
+-- Name: author_author_id_seq; Type: SEQUENCE OWNED BY; Schema: bookstore; Owner: postgres
+--
+
+ALTER SEQUENCE bookstore.author_author_id_seq OWNED BY bookstore.author.author_id;
+
+
+--
+-- Name: billing_information; Type: TABLE; Schema: bookstore; Owner: postgres
+--
+
+CREATE TABLE bookstore.billing_information (
+    billing_id integer NOT NULL,
+    card_number numeric(16,0),
+    cvv numeric(3,0),
+    first_name character varying(25),
+    last_name character varying(25),
+    street character varying(25),
+    city character varying(25),
+    province character varying(20),
+    postal_code character varying(6),
+    country character varying(25)
+);
+
+
+ALTER TABLE bookstore.billing_information OWNER TO postgres;
+
+--
+-- Name: billing_information_billing_id_seq; Type: SEQUENCE; Schema: bookstore; Owner: postgres
+--
+
+CREATE SEQUENCE bookstore.billing_information_billing_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE bookstore.billing_information_billing_id_seq OWNER TO postgres;
+
+--
+-- Name: billing_information_billing_id_seq; Type: SEQUENCE OWNED BY; Schema: bookstore; Owner: postgres
+--
+
+ALTER SEQUENCE bookstore.billing_information_billing_id_seq OWNED BY bookstore.billing_information.billing_id;
+
+
+--
+-- Name: book; Type: TABLE; Schema: bookstore; Owner: postgres
+--
+
+CREATE TABLE bookstore.book (
+    isbn numeric(13,0) NOT NULL,
+    book_name character varying(100),
+    price numeric(4,2),
+    num_pages integer,
+    quantity integer,
+    publishers_cut numeric(4,2),
+    publisher_name character varying(50),
+    author_id integer,
+    genre character varying(50)
+);
+
+
+ALTER TABLE bookstore.book OWNER TO postgres;
+
+--
+-- Name: book_cart; Type: TABLE; Schema: bookstore; Owner: postgres
+--
+
+CREATE TABLE bookstore.book_cart (
+    cart_id integer NOT NULL,
+    isbn numeric(13,0) NOT NULL,
+    cartquantity integer
+);
+
+
+ALTER TABLE bookstore.book_cart OWNER TO postgres;
+
+--
+-- Name: book_cart_cart_id_seq; Type: SEQUENCE; Schema: bookstore; Owner: postgres
+--
+
+CREATE SEQUENCE bookstore.book_cart_cart_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE bookstore.book_cart_cart_id_seq OWNER TO postgres;
+
+--
+-- Name: book_cart_cart_id_seq; Type: SEQUENCE OWNED BY; Schema: bookstore; Owner: postgres
+--
+
+ALTER SEQUENCE bookstore.book_cart_cart_id_seq OWNED BY bookstore.book_cart.cart_id;
+
+
+--
+-- Name: book_publisher_backorder; Type: TABLE; Schema: bookstore; Owner: postgres
+--
+
+CREATE TABLE bookstore.book_publisher_backorder (
+    isbn numeric(13,0) NOT NULL,
+    email character varying(35)
+);
+
+
+ALTER TABLE bookstore.book_publisher_backorder OWNER TO postgres;
+
+--
+-- Name: cart; Type: TABLE; Schema: bookstore; Owner: postgres
+--
+
+CREATE TABLE bookstore.cart (
+    cart_id integer NOT NULL,
+    username character varying(20)
+);
+
+
+ALTER TABLE bookstore.cart OWNER TO postgres;
+
+--
+-- Name: cart_cart_id_seq; Type: SEQUENCE; Schema: bookstore; Owner: postgres
+--
+
+CREATE SEQUENCE bookstore.cart_cart_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE bookstore.cart_cart_id_seq OWNER TO postgres;
+
+--
+-- Name: cart_cart_id_seq; Type: SEQUENCE OWNED BY; Schema: bookstore; Owner: postgres
+--
+
+ALTER SEQUENCE bookstore.cart_cart_id_seq OWNED BY bookstore.cart.cart_id;
+
+
+--
+-- Name: order; Type: TABLE; Schema: bookstore; Owner: postgres
+--
+
+CREATE TABLE bookstore."order" (
+    order_id integer NOT NULL,
+    order_date date,
+    tracking_id numeric(10,0),
+    price numeric(10,2),
+    shipping_message character varying(100),
+    billing_id integer,
+    shipping_id integer
+);
+
+
+ALTER TABLE bookstore."order" OWNER TO postgres;
+
+--
+-- Name: order_cart; Type: TABLE; Schema: bookstore; Owner: postgres
+--
+
+CREATE TABLE bookstore.order_cart (
+    cart_id integer NOT NULL,
+    order_id integer NOT NULL
+);
+
+
+ALTER TABLE bookstore.order_cart OWNER TO postgres;
+
+--
+-- Name: order_cart_cart_id_seq; Type: SEQUENCE; Schema: bookstore; Owner: postgres
+--
+
+CREATE SEQUENCE bookstore.order_cart_cart_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE bookstore.order_cart_cart_id_seq OWNER TO postgres;
+
+--
+-- Name: order_cart_cart_id_seq; Type: SEQUENCE OWNED BY; Schema: bookstore; Owner: postgres
+--
+
+ALTER SEQUENCE bookstore.order_cart_cart_id_seq OWNED BY bookstore.order_cart.cart_id;
+
+
+--
+-- Name: order_cart_order_id_seq; Type: SEQUENCE; Schema: bookstore; Owner: postgres
+--
+
+CREATE SEQUENCE bookstore.order_cart_order_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE bookstore.order_cart_order_id_seq OWNER TO postgres;
+
+--
+-- Name: order_cart_order_id_seq; Type: SEQUENCE OWNED BY; Schema: bookstore; Owner: postgres
+--
+
+ALTER SEQUENCE bookstore.order_cart_order_id_seq OWNED BY bookstore.order_cart.order_id;
+
+
+--
+-- Name: order_order_id_seq; Type: SEQUENCE; Schema: bookstore; Owner: postgres
+--
+
+CREATE SEQUENCE bookstore.order_order_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE bookstore.order_order_id_seq OWNER TO postgres;
+
+--
+-- Name: order_order_id_seq; Type: SEQUENCE OWNED BY; Schema: bookstore; Owner: postgres
+--
+
+ALTER SEQUENCE bookstore.order_order_id_seq OWNED BY bookstore."order".order_id;
+
+
+--
+-- Name: publisher; Type: TABLE; Schema: bookstore; Owner: postgres
+--
+
+CREATE TABLE bookstore.publisher (
+    name character varying(50) NOT NULL,
+    email character varying(35),
+    phone numeric(10,0),
+    banking_account numeric(10,0),
+    shipping_id integer NOT NULL
+);
+
+
+ALTER TABLE bookstore.publisher OWNER TO postgres;
+
+--
+-- Name: publisher_shipping_id_seq; Type: SEQUENCE; Schema: bookstore; Owner: postgres
+--
+
+CREATE SEQUENCE bookstore.publisher_shipping_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE bookstore.publisher_shipping_id_seq OWNER TO postgres;
+
+--
+-- Name: publisher_shipping_id_seq; Type: SEQUENCE OWNED BY; Schema: bookstore; Owner: postgres
+--
+
+ALTER SEQUENCE bookstore.publisher_shipping_id_seq OWNED BY bookstore.publisher.shipping_id;
+
+
+--
+-- Name: shipping_information; Type: TABLE; Schema: bookstore; Owner: postgres
+--
+
+CREATE TABLE bookstore.shipping_information (
+    shipping_id integer NOT NULL,
+    street character varying(25),
+    city character varying(25),
+    province character varying(20),
+    postal_code character varying(6),
+    country character varying(25)
+);
+
+
+ALTER TABLE bookstore.shipping_information OWNER TO postgres;
+
+--
+-- Name: shipping_information_shipping_id_seq; Type: SEQUENCE; Schema: bookstore; Owner: postgres
+--
+
+CREATE SEQUENCE bookstore.shipping_information_shipping_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE bookstore.shipping_information_shipping_id_seq OWNER TO postgres;
+
+--
+-- Name: shipping_information_shipping_id_seq; Type: SEQUENCE OWNED BY; Schema: bookstore; Owner: postgres
+--
+
+ALTER SEQUENCE bookstore.shipping_information_shipping_id_seq OWNED BY bookstore.shipping_information.shipping_id;
+
+
+--
+-- Name: user; Type: TABLE; Schema: bookstore; Owner: postgres
+--
+
+CREATE TABLE bookstore."user" (
+    username character varying(20) NOT NULL,
+    password character varying(20),
+    first_name character varying(20),
+    last_name character varying(20),
+    admin boolean
+);
+
+
+ALTER TABLE bookstore."user" OWNER TO postgres;
+
+--
+-- Name: user_billinginfo; Type: TABLE; Schema: bookstore; Owner: postgres
+--
+
+CREATE TABLE bookstore.user_billinginfo (
+    username character varying(20),
+    billing_id integer NOT NULL
+);
+
+
+ALTER TABLE bookstore.user_billinginfo OWNER TO postgres;
+
+--
+-- Name: user_billinginfo_billing_id_seq; Type: SEQUENCE; Schema: bookstore; Owner: postgres
+--
+
+CREATE SEQUENCE bookstore.user_billinginfo_billing_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE bookstore.user_billinginfo_billing_id_seq OWNER TO postgres;
+
+--
+-- Name: user_billinginfo_billing_id_seq; Type: SEQUENCE OWNED BY; Schema: bookstore; Owner: postgres
+--
+
+ALTER SEQUENCE bookstore.user_billinginfo_billing_id_seq OWNED BY bookstore.user_billinginfo.billing_id;
+
+
+--
+-- Name: user_shippinginfo; Type: TABLE; Schema: bookstore; Owner: postgres
+--
+
+CREATE TABLE bookstore.user_shippinginfo (
+    username character varying(20),
+    shipping_id integer NOT NULL
+);
+
+
+ALTER TABLE bookstore.user_shippinginfo OWNER TO postgres;
+
+--
+-- Name: user_shippinginfo_shipping_id_seq; Type: SEQUENCE; Schema: bookstore; Owner: postgres
+--
+
+CREATE SEQUENCE bookstore.user_shippinginfo_shipping_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE bookstore.user_shippinginfo_shipping_id_seq OWNER TO postgres;
+
+--
+-- Name: user_shippinginfo_shipping_id_seq; Type: SEQUENCE OWNED BY; Schema: bookstore; Owner: postgres
+--
+
+ALTER SEQUENCE bookstore.user_shippinginfo_shipping_id_seq OWNED BY bookstore.user_shippinginfo.shipping_id;
+
+
+--
+-- Name: author author_id; Type: DEFAULT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.author ALTER COLUMN author_id SET DEFAULT nextval('bookstore.author_author_id_seq'::regclass);
+
+
+--
+-- Name: billing_information billing_id; Type: DEFAULT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.billing_information ALTER COLUMN billing_id SET DEFAULT nextval('bookstore.billing_information_billing_id_seq'::regclass);
+
+
+--
+-- Name: book_cart cart_id; Type: DEFAULT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.book_cart ALTER COLUMN cart_id SET DEFAULT nextval('bookstore.book_cart_cart_id_seq'::regclass);
+
+
+--
+-- Name: cart cart_id; Type: DEFAULT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.cart ALTER COLUMN cart_id SET DEFAULT nextval('bookstore.cart_cart_id_seq'::regclass);
+
+
+--
+-- Name: order order_id; Type: DEFAULT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore."order" ALTER COLUMN order_id SET DEFAULT nextval('bookstore.order_order_id_seq'::regclass);
+
+
+--
+-- Name: order_cart cart_id; Type: DEFAULT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.order_cart ALTER COLUMN cart_id SET DEFAULT nextval('bookstore.order_cart_cart_id_seq'::regclass);
+
+
+--
+-- Name: order_cart order_id; Type: DEFAULT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.order_cart ALTER COLUMN order_id SET DEFAULT nextval('bookstore.order_cart_order_id_seq'::regclass);
+
+
+--
+-- Name: publisher shipping_id; Type: DEFAULT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.publisher ALTER COLUMN shipping_id SET DEFAULT nextval('bookstore.publisher_shipping_id_seq'::regclass);
+
+
+--
+-- Name: shipping_information shipping_id; Type: DEFAULT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.shipping_information ALTER COLUMN shipping_id SET DEFAULT nextval('bookstore.shipping_information_shipping_id_seq'::regclass);
+
+
+--
+-- Name: user_billinginfo billing_id; Type: DEFAULT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.user_billinginfo ALTER COLUMN billing_id SET DEFAULT nextval('bookstore.user_billinginfo_billing_id_seq'::regclass);
+
+
+--
+-- Name: user_shippinginfo shipping_id; Type: DEFAULT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.user_shippinginfo ALTER COLUMN shipping_id SET DEFAULT nextval('bookstore.user_shippinginfo_shipping_id_seq'::regclass);
+
+
+--
+-- Data for Name: author; Type: TABLE DATA; Schema: bookstore; Owner: postgres
+--
+
+COPY bookstore.author (author_id, first_name, last_name) FROM stdin;
+1	J.K.	Rowling
+2	Bill	Bryson
+3	Edward P.	Jones
+4	Henry	Miller
+5	Marguerite	Duras
+6	Robert Louis	Stevenson
+7	Thomas	Pynchon
+8	Joan	Didion
+9	Nikola	Tesla
+10	Anne	Tyler
+11	William	Golding
+12	Yann	Martel
+13	Rudolph W.	Giuliani
+14	Steven	Pressfield
+15	Charles	Dickens
+16	Herman	Melville
+17	Steve	Martini
+18	Harper	Lee
+19	George	Orwell
+20	Ray	Bradbury
+21	John	Steinbeck
+22	Joseph	Heller
+23	Kurt	Vonnegut
+24	Suzanne	Collins
+\.
+
+
+--
+-- Data for Name: billing_information; Type: TABLE DATA; Schema: bookstore; Owner: postgres
+--
+
+COPY bookstore.billing_information (billing_id, card_number, cvv, first_name, last_name, street, city, province, postal_code, country) FROM stdin;
+1	1234123412341234	123	josh	downing	123 billing street	ottawa	ontario	k2t1g9	canada
+2	1233321112341234	123	joe	smith	123 bill st	ottawa	ont	k2t1g9	canada
+3	1234123412341234	123	josh	downing	123 billing street	ottawa	ontario	l3t4p1	canada
+\.
+
+
+--
+-- Data for Name: book; Type: TABLE DATA; Schema: bookstore; Owner: postgres
+--
+
+COPY bookstore.book (isbn, book_name, price, num_pages, quantity, publishers_cut, publisher_name, author_id, genre) FROM stdin;
+9780439785969	Harry Potter and the Half-Blood Prince	12.00	652	20	10.00	Scholastic	1	Fantasy-Fiction
+9780767908184	A Short History of Nearly Everything	11.00	544	18	8.00	Scholastic	2	Non-Fiction
+9780060749910	The Known World	11.00	576	23	7.00	Scholastic	3	History
+9780802151827	Tropic of Capricorn	13.00	348	23	10.00	HarperCollins	4	Autobiography
+9781565842212	The War	9.00	192	22	9.00	HarperCollins	5	Autobiography
+9781416500292	Treasure Island	19.00	245	25	9.00	HarperCollins	6	Adventure-Fiction
+9780141180632	Vineland	12.00	385	24	8.00	HarperCollins	7	Postmodern-Fiction
+9780679754855	Democracy	14.00	234	23	9.00	HarperCollins	8	Historical-Fiction
+9781599869940	My Inventions	9.00	88	21	10.00	Macmillan	9	Autobiography
+9780399529207	Lord of the Flies	14.00	224	25	9.00	Macmillan	10	Psychological-Fiction
+9780307263940	Digging to America	13.00	277	23	9.00	Macmillan	11	YoungAdult-Fiction
+9780156030205	Life of Pi	16.00	401	26	10.00	Macmillan	12	Adventure-Fiction
+9780316861014	Leadership	14.00	397	22	9.00	Macmillan	13	Autobiography
+9780553383683	Gates of Fire	12.00	392	21	8.00	Sterling	14	Historical-Fiction
+9781593080556	A Tale of Two Cities	16.00	429	24	7.00	Sterling	15	Historical-Fiction
+9780515121490	The List	17.00	451	26	6.00	Sterling	17	Horror-Fiction
+9780141036144	1984	14.00	336	33	9.00	Candlewick	19	Dystopian-Fiction
+9780062409850	Go Set a Watchman	15.00	288	35	11.00	Candlewick	18	YoungAdult-Fiction
+9780553277531	Dandelion Wine	14.00	256	35	9.00	Candlewick	20	Fantasy-Fiction
+9780439358071	Harry Potter and the Order of the Phoenix	18.00	870	34	8.00	Scholastic	1	Fantasy-Fiction
+9780439554893	Harry Potter and the Chamber of Secrets	18.00	352	34	8.00	Scholastic	1	Fantasy-Fiction
+9780439655484	Harry Potter and the Prisoner of Azkaban	18.00	435	34	8.00	Scholastic	1	Fantasy-Fiction
+9780767903868	In a Sunburned Country	13.00	335	20	9.00	Scholastic	2	Travel
+9781451673319	Fahrenheit 451	13.00	256	28	8.00	Candlewick	20	Dystopian-Fiction
+9798700301879	Animal Farm	13.00	100	30	8.00	Candlewick	19	Satire
+9780060935467	To Kill a Mockingbird	17.00	323	25	7.00	Sterling	18	YoungAdult-Fiction
+9780380727506	Notes from a Small Island	10.00	324	20	8.00	Scholastic	2	Travel
+9781503280786	Moby Dick	15.00	378	21	6.00	Sterling	16	Adventure-Fiction
+9780140281620	The Grapes of Wrath	15.00	464	13	7.00	Scholastic	21	Historical-Fiction
+9781451626650	Catch-22	13.00	544	9	6.00	Scholastic	22	Historical-Fiction
+1234567891234	Slaughterhouse-Five	11.00	224	11	7.00	Scholastic	23	Science-Fiction
+\.
+
+
+--
+-- Data for Name: book_cart; Type: TABLE DATA; Schema: bookstore; Owner: postgres
+--
+
+COPY bookstore.book_cart (cart_id, isbn, cartquantity) FROM stdin;
+2	9780060935467	1
+3	9780767903868	2
+5	9798700301879	1
+7	9781451673319	2
+7	9798700301879	1
+7	9780060935467	1
+7	9780380727506	1
+8	9781503280786	1
+9	9780140281620	4
+10	9781451626650	3
+11	1234567891234	2
+\.
+
+
+--
+-- Data for Name: book_publisher_backorder; Type: TABLE DATA; Schema: bookstore; Owner: postgres
+--
+
+COPY bookstore.book_publisher_backorder (isbn, email) FROM stdin;
+\.
+
+
+--
+-- Data for Name: cart; Type: TABLE DATA; Schema: bookstore; Owner: postgres
+--
+
+COPY bookstore.cart (cart_id, username) FROM stdin;
+1	admin
+2	josh
+3	joe
+4	josh
+5	joe
+6	joe
+7	josh1
+8	josh1
+9	josh1
+10	josh1
+11	josh1
+12	josh1
+13	josh1
+\.
+
+
+--
+-- Data for Name: order; Type: TABLE DATA; Schema: bookstore; Owner: postgres
+--
+
+COPY bookstore."order" (order_id, order_date, tracking_id, price, shipping_message, billing_id, shipping_id) FROM stdin;
+1	2021-12-18	6835692819	26.00	Order Submitted	7	2
+2	2021-12-18	4158753840	13.00	Order Submitted	7	2
+4	2021-12-18	8111128601	15.00	Out for delivery	8	3
+5	2021-12-18	1379469785	60.00	Order Submitted	8	3
+3	2021-12-18	1052076791	66.00	Out for delivery	8	3
+6	2021-12-18	7304805434	39.00	Order Submitted	8	3
+7	2021-12-18	8307175219	22.00	Order Submitted	8	3
+8	2021-12-18	9716866365	36.00	Order Submitted	8	3
+\.
+
+
+--
+-- Data for Name: order_cart; Type: TABLE DATA; Schema: bookstore; Owner: postgres
+--
+
+COPY bookstore.order_cart (cart_id, order_id) FROM stdin;
+3	1
+5	2
+7	3
+8	4
+9	5
+10	6
+11	7
+12	8
+\.
+
+
+--
+-- Data for Name: publisher; Type: TABLE DATA; Schema: bookstore; Owner: postgres
+--
+
+COPY bookstore.publisher (name, email, phone, banking_account, shipping_id) FROM stdin;
+Scholastic	services@scholastic.com	6135551234	1234567890	1
+HarperCollins	services@harpercollins.com	6135551235	1234567891	2
+Macmillan	services@macmillan.com	6135551236	1234567892	3
+Sterling	services@sterling.com	6135551237	1234567893	4
+Candlewick	services@candlewick.com	6135551238	1234567894	5
+Penguin	services@penguin.com	6135551239	1234567895	6
+Random House	services@randomhouse.com	6135554321	9876543212	7
+\.
+
+
+--
+-- Data for Name: shipping_information; Type: TABLE DATA; Schema: bookstore; Owner: postgres
+--
+
+COPY bookstore.shipping_information (shipping_id, street, city, province, postal_code, country) FROM stdin;
+1	604 King Street	Toronto	Ontario	M5V1E1	Canada
+2	22 Adelaide Street	Toronto	Ontario	M5H4E3	Canada
+3	401 Richmond Street	Toronto	Ontario	M5V3A8	Canada
+4	1382 Queen Street	Toronto	Ontario	M4L1C9	Canada
+5	320 Front Street	Toronto	Ontario	M5V3B6	Canada
+6	123 test street	ottawa	ontario	k2t1g9	canada
+7	234 testst	ottawa	on	k2t1g9	can
+8	123 test street	ottawa	ontario	l3t4p1	canada
+9	123 publisher street	ottawa	ontario	l3t4p1	canada
+\.
+
+
+--
+-- Data for Name: user; Type: TABLE DATA; Schema: bookstore; Owner: postgres
+--
+
+COPY bookstore."user" (username, password, first_name, last_name, admin) FROM stdin;
+admin	admin	admin	admin	t
+josh	pass	josh	downing	f
+joe	pass1	joe	smith	f
+josh1	password	josh	downing	f
+\.
+
+
+--
+-- Data for Name: user_billinginfo; Type: TABLE DATA; Schema: bookstore; Owner: postgres
+--
+
+COPY bookstore.user_billinginfo (username, billing_id) FROM stdin;
+josh	1
+joe	2
+josh1	3
+\.
+
+
+--
+-- Data for Name: user_shippinginfo; Type: TABLE DATA; Schema: bookstore; Owner: postgres
+--
+
+COPY bookstore.user_shippinginfo (username, shipping_id) FROM stdin;
+josh	6
+joe	7
+josh1	8
+\.
+
+
+--
+-- Name: author_author_id_seq; Type: SEQUENCE SET; Schema: bookstore; Owner: postgres
+--
+
+SELECT pg_catalog.setval('bookstore.author_author_id_seq', 24, true);
+
+
+--
+-- Name: billing_information_billing_id_seq; Type: SEQUENCE SET; Schema: bookstore; Owner: postgres
+--
+
+SELECT pg_catalog.setval('bookstore.billing_information_billing_id_seq', 3, true);
+
+
+--
+-- Name: book_cart_cart_id_seq; Type: SEQUENCE SET; Schema: bookstore; Owner: postgres
+--
+
+SELECT pg_catalog.setval('bookstore.book_cart_cart_id_seq', 1, false);
+
+
+--
+-- Name: cart_cart_id_seq; Type: SEQUENCE SET; Schema: bookstore; Owner: postgres
+--
+
+SELECT pg_catalog.setval('bookstore.cart_cart_id_seq', 13, true);
+
+
+--
+-- Name: order_cart_cart_id_seq; Type: SEQUENCE SET; Schema: bookstore; Owner: postgres
+--
+
+SELECT pg_catalog.setval('bookstore.order_cart_cart_id_seq', 1, false);
+
+
+--
+-- Name: order_cart_order_id_seq; Type: SEQUENCE SET; Schema: bookstore; Owner: postgres
+--
+
+SELECT pg_catalog.setval('bookstore.order_cart_order_id_seq', 1, false);
+
+
+--
+-- Name: order_order_id_seq; Type: SEQUENCE SET; Schema: bookstore; Owner: postgres
+--
+
+SELECT pg_catalog.setval('bookstore.order_order_id_seq', 8, true);
+
+
+--
+-- Name: publisher_shipping_id_seq; Type: SEQUENCE SET; Schema: bookstore; Owner: postgres
+--
+
+SELECT pg_catalog.setval('bookstore.publisher_shipping_id_seq', 7, true);
+
+
+--
+-- Name: shipping_information_shipping_id_seq; Type: SEQUENCE SET; Schema: bookstore; Owner: postgres
+--
+
+SELECT pg_catalog.setval('bookstore.shipping_information_shipping_id_seq', 9, true);
+
+
+--
+-- Name: user_billinginfo_billing_id_seq; Type: SEQUENCE SET; Schema: bookstore; Owner: postgres
+--
+
+SELECT pg_catalog.setval('bookstore.user_billinginfo_billing_id_seq', 1, false);
+
+
+--
+-- Name: user_shippinginfo_shipping_id_seq; Type: SEQUENCE SET; Schema: bookstore; Owner: postgres
+--
+
+SELECT pg_catalog.setval('bookstore.user_shippinginfo_shipping_id_seq', 1, false);
+
+
+--
+-- Name: author author_pkey; Type: CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.author
+    ADD CONSTRAINT author_pkey PRIMARY KEY (author_id);
+
+
+--
+-- Name: billing_information billing_information_pkey; Type: CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.billing_information
+    ADD CONSTRAINT billing_information_pkey PRIMARY KEY (billing_id);
+
+
+--
+-- Name: book_cart book_cart_pkey; Type: CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.book_cart
+    ADD CONSTRAINT book_cart_pkey PRIMARY KEY (isbn, cart_id);
+
+
+--
+-- Name: book book_pkey; Type: CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.book
+    ADD CONSTRAINT book_pkey PRIMARY KEY (isbn);
+
+
+--
+-- Name: book_publisher_backorder book_publisher_backorder_pkey; Type: CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.book_publisher_backorder
+    ADD CONSTRAINT book_publisher_backorder_pkey PRIMARY KEY (isbn);
+
+
+--
+-- Name: cart cart_pkey; Type: CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.cart
+    ADD CONSTRAINT cart_pkey PRIMARY KEY (cart_id);
+
+
+--
+-- Name: order_cart order_cart_order_id_key; Type: CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.order_cart
+    ADD CONSTRAINT order_cart_order_id_key UNIQUE (order_id);
+
+
+--
+-- Name: order_cart order_cart_pkey; Type: CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.order_cart
+    ADD CONSTRAINT order_cart_pkey PRIMARY KEY (cart_id);
+
+
+--
+-- Name: order order_pkey; Type: CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore."order"
+    ADD CONSTRAINT order_pkey PRIMARY KEY (order_id);
+
+
+--
+-- Name: order order_tracking_id_key; Type: CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore."order"
+    ADD CONSTRAINT order_tracking_id_key UNIQUE (tracking_id);
+
+
+--
+-- Name: publisher publisher_banking_account_key; Type: CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.publisher
+    ADD CONSTRAINT publisher_banking_account_key UNIQUE (banking_account);
+
+
+--
+-- Name: publisher publisher_email_key; Type: CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.publisher
+    ADD CONSTRAINT publisher_email_key UNIQUE (email);
+
+
+--
+-- Name: publisher publisher_phone_key; Type: CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.publisher
+    ADD CONSTRAINT publisher_phone_key UNIQUE (phone);
+
+
+--
+-- Name: publisher publisher_pkey; Type: CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.publisher
+    ADD CONSTRAINT publisher_pkey PRIMARY KEY (name);
+
+
+--
+-- Name: shipping_information shipping_information_pkey; Type: CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.shipping_information
+    ADD CONSTRAINT shipping_information_pkey PRIMARY KEY (shipping_id);
+
+
+--
+-- Name: user_billinginfo user_billinginfo_pkey; Type: CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.user_billinginfo
+    ADD CONSTRAINT user_billinginfo_pkey PRIMARY KEY (billing_id);
+
+
+--
+-- Name: user user_pkey; Type: CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore."user"
+    ADD CONSTRAINT user_pkey PRIMARY KEY (username);
+
+
+--
+-- Name: user_shippinginfo user_shippinginfo_pkey; Type: CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.user_shippinginfo
+    ADD CONSTRAINT user_shippinginfo_pkey PRIMARY KEY (shipping_id);
+
+
+--
+-- Name: book put_book_on_backorder; Type: TRIGGER; Schema: bookstore; Owner: postgres
+--
+
+CREATE TRIGGER put_book_on_backorder AFTER UPDATE ON bookstore.book FOR EACH ROW WHEN ((new.quantity < 10)) EXECUTE FUNCTION public.order_books();
+
+
+--
+-- Name: book_cart remove_book_from_cart; Type: TRIGGER; Schema: bookstore; Owner: postgres
+--
+
+CREATE TRIGGER remove_book_from_cart AFTER UPDATE ON bookstore.book_cart FOR EACH ROW WHEN ((new.cartquantity = 0)) EXECUTE FUNCTION public.remove_book();
+
+
+--
+-- Name: book_cart book_cart_cart_id_fkey; Type: FK CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.book_cart
+    ADD CONSTRAINT book_cart_cart_id_fkey FOREIGN KEY (cart_id) REFERENCES bookstore.cart(cart_id);
+
+
+--
+-- Name: book_cart book_cart_isbn_fkey; Type: FK CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.book_cart
+    ADD CONSTRAINT book_cart_isbn_fkey FOREIGN KEY (isbn) REFERENCES bookstore.book(isbn) ON DELETE CASCADE;
+
+
+--
+-- Name: book_publisher_backorder book_publisher_backorder_isbn_fkey; Type: FK CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.book_publisher_backorder
+    ADD CONSTRAINT book_publisher_backorder_isbn_fkey FOREIGN KEY (isbn) REFERENCES bookstore.book(isbn) ON DELETE CASCADE;
+
+
+--
+-- Name: order_cart order_cart_cart_id_fkey; Type: FK CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.order_cart
+    ADD CONSTRAINT order_cart_cart_id_fkey FOREIGN KEY (cart_id) REFERENCES bookstore.cart(cart_id);
+
+
+--
+-- Name: order_cart order_cart_order_id_fkey; Type: FK CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.order_cart
+    ADD CONSTRAINT order_cart_order_id_fkey FOREIGN KEY (order_id) REFERENCES bookstore."order"(order_id);
+
+
+--
+-- Name: user_billinginfo user_billinginfo_billing_id_fkey; Type: FK CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.user_billinginfo
+    ADD CONSTRAINT user_billinginfo_billing_id_fkey FOREIGN KEY (billing_id) REFERENCES bookstore.billing_information(billing_id);
+
+
+--
+-- Name: user_billinginfo user_billinginfo_username_fkey; Type: FK CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.user_billinginfo
+    ADD CONSTRAINT user_billinginfo_username_fkey FOREIGN KEY (username) REFERENCES bookstore."user"(username) ON DELETE CASCADE;
+
+
+--
+-- Name: user_shippinginfo user_shippinginfo_shipping_id_fkey; Type: FK CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.user_shippinginfo
+    ADD CONSTRAINT user_shippinginfo_shipping_id_fkey FOREIGN KEY (shipping_id) REFERENCES bookstore.shipping_information(shipping_id);
+
+
+--
+-- Name: user_shippinginfo user_shippinginfo_username_fkey; Type: FK CONSTRAINT; Schema: bookstore; Owner: postgres
+--
+
+ALTER TABLE ONLY bookstore.user_shippinginfo
+    ADD CONSTRAINT user_shippinginfo_username_fkey FOREIGN KEY (username) REFERENCES bookstore."user"(username) ON DELETE CASCADE;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
