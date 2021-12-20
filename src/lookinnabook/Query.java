@@ -788,6 +788,21 @@ public static void insertBillingAddress(String card, String cvv, String firstnam
 		}return null;
 	}
 	
+	public static ArrayList<String> getAllBooks(){
+		try {
+			ArrayList<String>data = new ArrayList<>();
+			ResultSet result = Main.stmt.executeQuery("select book_name from bookstore.book");
+			while(result.next()) {
+				data.add(result.getString("book_name"));
+			}
+			return data;
+			}
+		catch (SQLException e) {
+            e.printStackTrace();
+		}return null;
+	
+	}
+	
 	public static ArrayList<String> getSalesReport(String time){
 		try {
 			ArrayList<String>data = new ArrayList<>();

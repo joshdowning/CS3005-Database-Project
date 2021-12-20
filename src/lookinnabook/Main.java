@@ -790,6 +790,13 @@ public class Main {
     	
     }
     
+    public static void seeAllBooks(boolean loggedIn) {
+    	System.out.println("All books at our store are listed below: ");
+    	ArrayList<String>booknames = Query.getAllBooks();
+    	booknames.forEach(book->System.out.println(book));
+    	browse(loggedIn);
+    }
+    
     public static void beginPurchase() {
     	String cart_id = Query.getUsersCartId(currentUser);
     	if(Query.isCartEmpty(cart_id)) {
@@ -815,7 +822,7 @@ public class Main {
     
     
     public static void browse(boolean loggedIn) {    	
-    	System.out.println("Welcome to the book store main menu! Type 1 to begin a search for a book. Type 2 to check your cart. Type 3 to begin purchasing process. Type 4 to see your order. Type 5 to return to login screen");
+    	System.out.println("Welcome to the book store main menu! Type 1 to begin a search for a book. Type 2 to check your cart. Type 3 to begin purchasing process. Type 4 to see your order. Type 5 to see all books. Type 6 to return to login screen");
 		switch(input.nextLine()) {
 		
 		case "1":
@@ -875,7 +882,12 @@ public class Main {
 				break;
 
 		}
+		
 		case "5":
+			seeAllBooks(loggedIn);
+			break;
+		
+		case "6":
 			logout();
 			break;
 
